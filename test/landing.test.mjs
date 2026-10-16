@@ -20,3 +20,13 @@ test('build inserts a safe config placeholder and never hardcodes an Android sto
   assert.match(build, /LANDING_CONFIG/);
   assert.doesNotMatch(build, /readFile\([^)]*\.env/);
 });
+
+test('all landing photographic backgrounds use configured optimized asset', async () => {
+  const css = await readFile(resolve(root, 'src/style.css'), 'utf8');
+  const vercel = JSON.parse(await readFile(resolve(root, 'vercel.json'), 'utf8'));
+  assert.doesNotMatch(css, /url\('\/reference\.png'\)/);
+  assert.match(css, /_vercel\/image\?url=%2Freference\.png&w=1080&q=60/);
+  assert.ok(vercel.images.sizes.includes(1080));
+  assert.ok(vercel.images.qualities.includes(60));
+  assert.equal(vercel.git.deploymentEnabled, false);
+});
