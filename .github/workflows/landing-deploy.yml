@@ -1,0 +1,89 @@
+name: Landing production release (owner one-command)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type DEPLOY_LANDING
+        required: true
+        type: string
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: hotpot-landing-production
+  cancel-in-progress: false
+jobs:
+  release:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' &&
+       github.actor == 'meyecarpenter23842') ||
+      (github.event_name == 'issue_comment' && github.actor == 'meyecarpenter23842' &&
+       github.event.issue.number == 1 && github.event.issue.pull_request == null &&
+       github.event.comment.body == '/deploy-hotpot-landing')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: team_y62wm4NHABOjKc1wyNmGmJgR
+      VERCEL_PROJECT_ID: prj_9JRXxorUcdGLXX48nzIBHaqSuDRu
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify immutable main and owner request
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            test '${{ inputs.confirm }}' = 'DEPLOY_LANDING'
+          fi
+          git fetch -q origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          test -n "$VERCEL_TOKEN" || { echo '::error::Missing repository secret VERCEL_TOKEN'; exit 1; }
+          node -e 'const p=require("./vercel.json");if(p.git.deploymentEnabled!==false)process.exit(1)'
+      - name: Require completed green CI on exact main commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse HEAD)"
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow landing-ci.yml --branch main \
+            --limit 30 --json headSha,conclusion,status | jq -e --arg sha "$SHA" \
+            'any(.[]; .headSha == $sha and .status == "completed" and .conclusion == "success")'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Verify exact build locally
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run check
+      - name: Build & deploy via Vercel prebuilt CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund vercel@50
+          mkdir -p .vercel
+          printf '{"orgId":"%s","projectId":"%s"}' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
+          ./node_modules/.bin/vercel build --prod --yes --token "$VERCEL_TOKEN"
+          URL="$(./node_modules/.bin/vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN" | tail -n 1)"
+          echo "DEPLOY_URL=$URL" >> "$GITHUB_ENV"
+      - name: Verify production READY and accessible
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            STATUS="$(curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v13/deployments/${DEPLOY_URL#https://}?teamId=$VERCEL_ORG_ID" \
+              | jq -r '.readyState // empty')" || STATUS=''
+            [[ "$STATUS" == READY ]] && break
+            [[ "$STATUS" == ERROR || "$STATUS" == CANCELED ]] && exit 1
+            sleep 5
+          done
+          test "${STATUS:-}" = READY
+          curl --fail --silent --show-error --location --max-time 25 \
+            https://hotpot-landing.vercel.app/ | grep -q 'Sichuan Hotpot'

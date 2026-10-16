@@ -1,0 +1,14 @@
+{
+  "name": "hotpot-landing",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=22 <26"},
+  "scripts": {
+    "lint": "node --check scripts/build.mjs && node --check src/main.js && node --check test/landing.test.mjs",
+    "typecheck": "npm run lint",
+    "test": "node --test test/*.test.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build"
+  }
+}

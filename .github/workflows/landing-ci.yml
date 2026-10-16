@@ -1,0 +1,32 @@
+name: Landing quality
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install exact lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Lint / typecheck / test / build
+        run: npm run check
+      - name: Validate deployment lock and exported HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e 'const fs=require("fs"); if(fs.readFileSync("vercel.json","utf8") && JSON.parse(fs.readFileSync("vercel.json")).git.deploymentEnabled!==false) process.exit(1)'
+          test -s dist/index.html
+          grep -q 'LANDING_CONFIG' dist/index.html
+          ! grep -q '__LANDING_CONFIG__' dist/index.html
+          test -s dist/favicon.svg
