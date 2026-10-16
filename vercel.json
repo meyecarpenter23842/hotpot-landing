@@ -1,6 +1,25 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "git": { "deploymentEnabled": false },
+  "git": {
+    "deploymentEnabled": false
+  },
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "images": {
+    "sizes": [
+      1080
+    ],
+    "qualities": [
+      60
+    ],
+    "formats": [
+      "image/webp"
+    ],
+    "localPatterns": [
+      {
+        "pathname": "^/reference\\.png$"
+      }
+    ],
+    "minimumCacheTTL": 86400
+  }
 }
