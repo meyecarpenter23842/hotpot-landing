@@ -30,3 +30,29 @@ test('all landing photographic backgrounds use configured optimized asset', asyn
   assert.ok(vercel.images.qualities.includes(60));
   assert.equal(vercel.git.deploymentEnabled, false);
 });
+
+test('iPhone CTA uses familiar wording without technical PWA jargon', async () => {
+  const html = await readFile(resolve(root, 'src/index.html'), 'utf8');
+  assert.match(html, /<strong>Cài app trên iPhone<\/strong>/);
+  assert.doesNotMatch(html, /<strong>Cài PWA<\/strong>/);
+});
+
+test('social preview is a complete public Open Graph card for the canonical landing domain', async () => {
+  const html = await readFile(resolve(root, 'src/index.html'), 'utf8');
+  const build = await readFile(resolve(root, 'scripts/build.mjs'), 'utf8');
+  for (const field of ['og:url','og:image','og:image:width','og:image:height','twitter:card','twitter:image']) {
+    assert.match(html, new RegExp('(?:property|name)="' + field + '"'));
+  }
+  assert.match(html, /content="https:\/\/app\.bepsi\.click\/og-sichuan-hotpot\.png"/);
+  assert.match(html, /name="twitter:card" content="summary_large_image"/);
+  assert.match(build, /og-sichuan-hotpot\.png/);
+  const image = await readFile(resolve(root, 'Ảnh ChatGPT 21_47_59 16 thg 10, 2026.png'));
+  assert.equal(image.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+});
+
+test('downloadable QR is a real PNG image, not a visual mockup', async () => {
+  const html = await readFile(resolve(root, 'src/index.html'), 'utf8');
+  const image = await readFile(resolve(root, 'public/qr-app-bepsi.png'));
+  assert.match(html, /href="\/qr-app-bepsi\.png"/);
+  assert.equal(image.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+});

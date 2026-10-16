@@ -20,6 +20,8 @@ await mkdir(target, { recursive: true });
 await cp(resolve(root, 'src'), target, { recursive: true });
 await cp(resolve(root, 'public'), target, { recursive: true });
 await cp(resolve(root, 'Ảnh ChatGPT 20_12_17 16 thg 10, 2026-3.png'), resolve(target, 'reference.png'));
+// Use the owner's uploaded preview asset directly: keep the social image on the landing origin.
+await cp(resolve(root, 'Ảnh ChatGPT 21_47_59 16 thg 10, 2026.png'), resolve(target, 'og-sichuan-hotpot.png'));
 const htmlPath = resolve(target, 'index.html');
 let html = await readFile(htmlPath, 'utf8');
 const configJson = JSON.stringify({ appUrl, playUrl }).replaceAll('<', '\\u003c');
