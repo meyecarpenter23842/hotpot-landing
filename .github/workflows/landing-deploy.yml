@@ -86,4 +86,4 @@ jobs:
           done
           test "${STATUS:-}" = READY
           curl --fail --silent --show-error --location --max-time 25 \
-            https://hotpot-landing.vercel.app/ | grep -q 'Sichuan Hotpot'
+            https://hotpot-landing-seven.vercel.app/ | grep -q 'Sichuan Hotpot'
