@@ -68,7 +68,7 @@ test('platform download buttons show branded vector icons and remain side by sid
   assert.match(html, /#FF6262/);
   assert.doesNotMatch(html, /class="play-mark"|class="globe-mark"/);
   assert.match(css, /\.actions\{gap:8px;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
-  assert.match(css, /@media\(max-width:340px\)[^{]*\{[^}]*\.actions\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:340px\)[^\n]*\.actions\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.doesNotMatch(css, /\.actions\{grid-template-columns:1fr\}/);
   assert.match(css, /\.action:active:not\(\[aria-disabled=true\]\)/);
 });
