@@ -72,3 +72,10 @@ test('platform download buttons show branded vector icons and remain side by sid
   assert.doesNotMatch(css, /\.actions\{grid-template-columns:1fr\}/);
   assert.match(css, /\.action:active:not\(\[aria-disabled=true\]\)/);
 });
+
+test('production workflow binds the dedicated environment secret before reading Vercel credentials', async () => {
+  const workflow = await readFile(resolve(root, '.github/workflows/landing-deploy.yml'), 'utf8');
+  assert.match(workflow, /jobs:\s*\n\s*release:\s*\n[\s\S]*?environment: hotpot-landing/);
+  assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
+  assert.match(workflow, /github\.event\.comment\.body == '\/deploy-hotpot-landing'/);
+});

@@ -23,6 +23,7 @@ jobs:
        github.event.issue.number == 1 && github.event.issue.pull_request == null &&
        github.event.comment.body == '/deploy-hotpot-landing')
     runs-on: ubuntu-latest
+    environment: hotpot-landing
     timeout-minutes: 20
     env:
       VERCEL_ORG_ID: team_y62wm4NHABOjKc1wyNmGmJgR
