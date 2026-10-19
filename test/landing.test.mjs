@@ -56,3 +56,19 @@ test('downloadable QR is a real PNG image, not a visual mockup', async () => {
   assert.match(html, /href="\/qr-app-bepsi\.png"/);
   assert.equal(image.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
 });
+
+test('platform download buttons show branded vector icons and remain side by side on narrow phones', async () => {
+  const html = await readFile(resolve(root, 'src/index.html'), 'utf8');
+  const css = await readFile(resolve(root, 'src/style.css'), 'utf8');
+  assert.match(html, /class="platform-icon play-icon"/);
+  assert.match(html, /class="platform-icon apple-icon"/);
+  assert.match(html, /#27C9FF/);
+  assert.match(html, /#36D484/);
+  assert.match(html, /#FFD54B/);
+  assert.match(html, /#FF6262/);
+  assert.doesNotMatch(html, /class="play-mark"|class="globe-mark"/);
+  assert.match(css, /\.actions\{gap:8px;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/);
+  assert.match(css, /@media\(max-width:340px\)[^{]*\{[^}]*\.actions\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.doesNotMatch(css, /\.actions\{grid-template-columns:1fr\}/);
+  assert.match(css, /\.action:active:not\(\[aria-disabled=true\]\)/);
+});
