@@ -9,12 +9,10 @@
       link.href = config.playUrl;
       link.rel = 'noopener noreferrer';
       link.removeAttribute('aria-disabled');
-      if (link.classList.contains('option-link')) link.textContent = 'Mở Google Play ↗';
     } else {
       link.removeAttribute('href');
       link.setAttribute('aria-disabled', 'true');
       link.removeAttribute('aria-label');
-      if (link.classList.contains('option-link')) link.textContent = 'Sắp có trên Google Play ↗';
     }
   });
   const note = document.querySelector('[data-play-note]');
