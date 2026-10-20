@@ -11,7 +11,7 @@ test('landing entry has Vietnamese metadata, functional CTA hooks and accessibil
   assert.match(html, /data-cta="play"/);
   assert.match(html, /\/main\.js/);
   assert.match(html, /id="huong-dan"/);
-  assert.match(html, /<details>/);
+  assert.doesNotMatch(html, /<details>/);
 });
 test('build inserts a safe config placeholder and never hardcodes an Android store app', async () => {
   const build = await readFile(resolve(root, 'scripts/build.mjs'), 'utf8');
@@ -78,4 +78,20 @@ test('production workflow binds the dedicated environment secret before reading 
   assert.match(workflow, /jobs:\s*\n\s*release:\s*\n[\s\S]*?environment: hotpot-landing/);
   assert.match(workflow, /VERCEL_TOKEN: \$\{\{ secrets\.VERCEL_TOKEN \}\}/);
   assert.match(workflow, /github\.event\.comment\.body == '\/deploy-hotpot-landing'/);
+});
+
+test('landing ends after iPhone installation guide with a compact functional footer', async () => {
+  const html = await readFile(resolve(root, 'src/index.html'), 'utf8');
+  const css = await readFile(resolve(root, 'src/style.css'), 'utf8');
+  assert.equal(html.split('<section ').length - 1, 2);
+  assert.ok(html.indexOf('id="huong-dan"') < html.indexOf('class="footer"'));
+  for (const obsolete of ['class="choose"', 'class="faq"', 'class="options"', 'id="lua-chon"']) {
+    assert.ok(!html.includes(obsolete), obsolete + ' should be removed');
+  }
+  for (const obsolete of ['.choose{', '.faq{', '.option-copy{']) {
+    assert.ok(!css.includes(obsolete), obsolete + ' CSS should be removed');
+  }
+  assert.ok(html.includes('class="footer-links"'));
+  assert.ok(html.includes('href="/qr-app-bepsi.png"'));
+  assert.ok(html.includes('data-cta="web" href="https://bepsi.click">Mở ứng dụng'));
 });
