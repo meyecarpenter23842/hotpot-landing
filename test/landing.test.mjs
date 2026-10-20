@@ -83,11 +83,15 @@ test('production workflow binds the dedicated environment secret before reading 
 test('landing ends after iPhone installation guide with a compact functional footer', async () => {
   const html = await readFile(resolve(root, 'src/index.html'), 'utf8');
   const css = await readFile(resolve(root, 'src/style.css'), 'utf8');
-  assert.equal([...html.matchAll(/<section\\b/g)].length, 2);
+  assert.equal(html.split('<section ').length - 1, 2);
   assert.ok(html.indexOf('id="huong-dan"') < html.indexOf('class="footer"'));
-  assert.doesNotMatch(html, /class="choose"|class="faq"|class="options"|id="lua-chon"/);
-  assert.doesNotMatch(css, /\\.choose\\{|\\.faq\\{|\\.option-copy\\{/);
-  assert.match(html, /class="footer-links"/);
-  assert.match(html, /href="\\/qr-app-bepsi\\.png"/);
-  assert.match(html, /<a data-cta="web" href="https:\\/\\/bepsi\\.click">Mở ứng dụng/);
+  for (const obsolete of ['class="choose"', 'class="faq"', 'class="options"', 'id="lua-chon"']) {
+    assert.ok(!html.includes(obsolete), obsolete + ' should be removed');
+  }
+  for (const obsolete of ['.choose{', '.faq{', '.option-copy{']) {
+    assert.ok(!css.includes(obsolete), obsolete + ' CSS should be removed');
+  }
+  assert.ok(html.includes('class="footer-links"'));
+  assert.ok(html.includes('href="/qr-app-bepsi.png"'));
+  assert.ok(html.includes('data-cta="web" href="https://bepsi.click">Mở ứng dụng'));
 });
